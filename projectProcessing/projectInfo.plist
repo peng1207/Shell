@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>projectName</key>
+	<string>ScanProject</string>
+	<key>infoPlistPath</key>
+	<string>/Users/huangshupeng/Documents/test/ScanProject/ScanProject/Info.plist</string>
+	<key>projectPath</key>
+	<string>/Users/huangshupeng/Documents/test/ScanProject</string>
+	<key>mobileprovisionOfDev</key>
+	<string>ScanDev</string>
+	<key>mobileprovisionOfAdHoc</key>
+	<string>ScanAdhoc</string>
+	<key>mobileprovisionOfAppstore</key>
+	<string>ScanAppStore</string>
+	<key>teamID</key>
+	<string>2X8ED8ZMS2</string>
+	<key>assetsPath</key>
+	<string></string>
+	<key>CFBundleIdentifier</key>
+	<string>com.shupenghuang.scan</string>
+</dict>
+</plist>

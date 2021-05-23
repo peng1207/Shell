@@ -99,7 +99,7 @@ do
         echo "1x"
         multiple=1
     fi
-    w=$(($h*$multiple))
+    w=$(($w*$multiple))
     h=$(($h*$multiple))
     echo "w is $w h is $h"
     new_icon_path="$appIcon_path/$filename"
