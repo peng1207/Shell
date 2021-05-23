@@ -62,19 +62,22 @@ project_path=$(/usr/libexec/PlistBuddy -c "print projectPath" "${projectInfo_pli
 # teamID
 teamID=$(/usr/libexec/PlistBuddy -c "print teamID" "${projectInfo_plist_path}")
 # ipa 保存的路径
-ipa_path="$current_path/$project_name.ipa"
+ipa_path="$current_path/$project_name"
+ipa_name_path="$ipa_path/$project_name.ipa"
 # archive 路径
-archive_path="${project_path}/${APP_NAME}.xcarchive"
+archive_path="${project_path}/${project_name}.xcarchive"
 # 打包mobileprovision的名称 不带后缀.mobileprovision
 provisioningProfile=""
 # 打包方式
 method="app-store"
 #签名证书
 signingCertificate="Apple Distribution"
+build_configuration="Release"
 if [ "$archiveType" = "$dev_code" ];then
     provisioningProfile=$(/usr/libexec/PlistBuddy -c "print mobileprovisionOfDev" "${projectInfo_plist_path}")
     method="development"
     signingCertificate="Apple Development"
+    build_configuration="Debug"
 elif [ "$archiveType" = "$adhoc_code" ];then
     provisioningProfile=$(/usr/libexec/PlistBuddy -c "print mobileprovisionOfAdHoc" "${projectInfo_plist_path}")
     method="ad-hoc"
@@ -110,13 +113,12 @@ cd $project_path
 
 
 bundle_identifier=$(/usr/libexec/PlistBuddy -c "print CFBundleIdentifier" "${projectInfo_plist_path}")
-#bundle_identifier=$(/usr/libexec/PlistBuddy -c "print PRODUCT_BUNDLE_IDENTIFIER" "/Users/huangshupeng/Documents/test/ScanProject/ScanProject.xcodeproj/project.pbxproj")
 echo "bundle_identifier is $bundle_identifier"
 #EXPANDED_BUNDLE_ID=$PRODUCT_BUNDLE_IDENTIFIER
 #echo "EXPANDED_BUNDLE_ID is $EXPANDED_BUNDLE_ID"
-if [ "$bundle_identifier" != "" ];then
-     $(/usr/libexec/PlistBuddy -c "Set CFBundleIdentifier ${build_version} " "${info_plist_path}")
-fi
+#if [ "$bundle_identifier" != "" ];then
+#     $(/usr/libexec/PlistBuddy -c "Set CFBundleIdentifier ${bundle_identifier} " "${info_plist_path}")
+#fi
 
  
 echo "生成ExportOptions.plist"
@@ -130,25 +132,32 @@ fi
 $(/usr/libexec/PlistBuddy -c "Add :destination string export" ${exportOptions_plist_path})
 $(/usr/libexec/PlistBuddy -c "Add :method string ${method}" ${exportOptions_plist_path})
 $(/usr/libexec/PlistBuddy -c "Add :signingStyle string manual" ${exportOptions_plist_path})
-$(/usr/libexec/PlistBuddy -c "Add :stripSwiftSymbols string 1" ${exportOptions_plist_path})
+$(/usr/libexec/PlistBuddy -c "Add :stripSwiftSymbols bool NO" ${exportOptions_plist_path})
 $(/usr/libexec/PlistBuddy -c "Add :teamID string ${teamID}" ${exportOptions_plist_path})
 
 $(/usr/libexec/PlistBuddy -c "Add :signingCertificate string ${signingCertificate}" ${exportOptions_plist_path})
 $(/usr/libexec/PlistBuddy -c "Add :provisioningProfiles dict" ${exportOptions_plist_path})
 $(/usr/libexec/PlistBuddy -c "Add :provisioningProfiles:${bundle_identifier} string ${provisioningProfile}" ${exportOptions_plist_path})
-
-
-exit
-echo "清除"
-xcodebuild clean -workspace "${project_name}.xcworkspace" -scheme "${project_name}" -configuration "Release"
+# compileBitcode
+#$(/usr/libexec/PlistBuddy -c "Add :compileBitcode bool YES" ${exportOptions_plist_path})
+#thinning
+if [ "$archiveType" = "$dev_code" -o  "$archiveType" = "$adhoc_code" ];then
+$(/usr/libexec/PlistBuddy -c "Add :thinning string <none>" ${exportOptions_plist_path})
+fi
+#exit
+#echo "清除"
+xcodebuild clean -workspace "${project_name}.xcworkspace" -scheme "${project_name}" -configuration "$build_configuration"
 echo "archive "
-xcodebuild archive -workspace "${project_name}.xcworkspace" -scheme "${project_name}" -archivePath "${archive_path}" PROVISIONING_PROFILE_SPECIFIER="${provisioningProfile}"
+xcodebuild archive -workspace "${project_name}.xcworkspace" -scheme "${project_name}" -configuration "$build_configuration" -archivePath "${archive_path}" PROVISIONING_PROFILE_SPECIFIER="${provisioningProfile}"
 echo "导出ipa"
+echo "archive_path is ${archive_path}"
 xcodebuild -exportArchive -archivePath "${archive_path}" -exportPath "${ipa_path}" -exportOptionsPlist "${exportOptions_plist_path}"
 
 
-if [ "$appstore_user" != "" -a "$appstore_pwd" != "" -a -f "$ipa_path" ];then
+if [ "$appstore_user" != "" -a "$appstore_pwd" != "" -a -f "$ipa_name_path" ];then
     echo "执行上传"
     upload_path="${current_path}/uploadAppStore.sh"
-    sh $upload_path $ipa_path $appstore_user $appstore_pwd
+    sh $upload_path $ipa_name_path $appstore_user $appstore_pwd
 fi
+
+rm -rf $archive_path
