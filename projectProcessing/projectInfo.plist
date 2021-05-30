@@ -9,7 +9,7 @@
 	<key>projectPath</key>
 	<string>/Users/huangshupeng/Documents/test/ScanProject</string>
 	<key>mobileprovisionOfDev</key>
-	<string>ScanDev</string>
+	<string>BraceletProjectDev</string>
 	<key>mobileprovisionOfAdHoc</key>
 	<string>ScanAdhoc</string>
 	<key>mobileprovisionOfAppstore</key>
@@ -19,6 +19,6 @@
 	<key>assetsPath</key>
 	<string></string>
 	<key>CFBundleIdentifier</key>
-	<string>com.shupenghuang.scan</string>
+	<string>com.pc.BraceletProject1</string>
 </dict>
 </plist>

@@ -113,14 +113,25 @@ cd $project_path
 
 
 bundle_identifier=$(/usr/libexec/PlistBuddy -c "print CFBundleIdentifier" "${projectInfo_plist_path}")
-echo "bundle_identifier is $bundle_identifier"
+echo "bundle_identifier is ${bundle_identifier}"
 #EXPANDED_BUNDLE_ID=$PRODUCT_BUNDLE_IDENTIFIER
 #echo "EXPANDED_BUNDLE_ID is $EXPANDED_BUNDLE_ID"
-#if [ "$bundle_identifier" != "" ];then
-#     $(/usr/libexec/PlistBuddy -c "Set CFBundleIdentifier ${bundle_identifier} " "${info_plist_path}")
-#fi
+tmp_project_path="${current_path}/project.pbxproj"
+project_path="${project_path}/${project_name}.xcodeproj/project.pbxproj"
+if [ "$bundle_identifier" != "" ];then
+#     $(/usr/libexec/PlistBuddy -c "Set CFBundleIdentifier ${bundle_identifier}" "${info_plist_path}")
+    #PRODUCT_BUNDLE_IDENTIFIER = com.shupenghuang.scan;
+    #PRODUCT_BUNDLE_IDENTIFIER = com.shupenghuang.scan.ScanProjectTests;
+    #PRODUCT_BUNDLE_IDENTIFIER = com.shupenghuang.scan.ScanProjectUITests;
+    #sed -e "s/#define $wxTest/#define $wxRealse/" ${thirdPartAppKey_path} > ${editThirdPartAppKey_path}
+    cp $project_path $tmp_project_path
+    echo "更改bundle_identifier ${bundle_identifier}"
+    project_path_tmp="${current_path}/projectTmp.pbxproj"
+    sed -e "s/com.shupenghuang.scan/$bundle_identifier/" ${project_path} > ${project_path_tmp}
+    rm -r -f ${project_path}
+    mv ${project_path_tmp} ${project_path}
+fi
 
- 
 echo "生成ExportOptions.plist"
 # $(/usr/libexec/PlistBuddy -c "Add :${version_domain} string 00" ${version_path})
 exportOptions_plist_path="${current_path}/ExportOptions.plist"
@@ -138,8 +149,7 @@ $(/usr/libexec/PlistBuddy -c "Add :teamID string ${teamID}" ${exportOptions_plis
 $(/usr/libexec/PlistBuddy -c "Add :signingCertificate string ${signingCertificate}" ${exportOptions_plist_path})
 $(/usr/libexec/PlistBuddy -c "Add :provisioningProfiles dict" ${exportOptions_plist_path})
 $(/usr/libexec/PlistBuddy -c "Add :provisioningProfiles:${bundle_identifier} string ${provisioningProfile}" ${exportOptions_plist_path})
-# compileBitcode
-#$(/usr/libexec/PlistBuddy -c "Add :compileBitcode bool YES" ${exportOptions_plist_path})
+ 
 #thinning
 if [ "$archiveType" = "$dev_code" -o  "$archiveType" = "$adhoc_code" ];then
 $(/usr/libexec/PlistBuddy -c "Add :thinning string <none>" ${exportOptions_plist_path})
@@ -161,3 +171,5 @@ if [ "$appstore_user" != "" -a "$appstore_pwd" != "" -a -f "$ipa_name_path" ];th
 fi
 
 rm -rf $archive_path
+cp $tmp_project_path $project_path
+rm -rf $tmp_project_path
