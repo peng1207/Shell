@@ -6,11 +6,17 @@ project_name=`sh ../readProperties.sh projectName`
 class_name=$class_prefix"DataBase"
 auth_info=`sh authorInfo.sh ${project_name} ${class_name}.swift`
 
+DataBaseObject=$class_prefix"DataBaseObject"
 
+base_folder_name="DataBase"
+rm -rf $base_folder_name
+mkdir $base_folder_name
 
 echo "${auth_info}
 import Foundation
 import RealmSwift
+
+typealias ${DataBaseObject} = Object
 
 class ${class_name}  {
     /// 配置数据库
@@ -32,14 +38,14 @@ class ${class_name}  {
 }
 extension ${class_name} {
     
-   class func insert<T>(data : T) where T  : Object{
+   class func insert<T>(data : T) where T  : ${DataBaseObject}{
         let realm = try! Realm()
         try! realm.write {
        
             realm.add(data)
         }
     }
-    class func getAll<T>()->[T] where T : Object {
+    class func getAll<T>()->[T] where T : ${DataBaseObject} {
         var list = [T]()
          let realm = try! Realm()
         let lists = realm.objects(T.self)
@@ -53,4 +59,4 @@ extension ${class_name} {
     
 }
 
-" >> $class_name".swift"
+" >>  $base_folder_name"/"$class_name".swift"

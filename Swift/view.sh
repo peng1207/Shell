@@ -2,9 +2,18 @@
 
 input_name=$1
 echo "name $input_name"
+if [ "$input_name" == "" ];then
+echo "请输入类名 不需要前缀和后缀 例如 XXHomeView 只输入Home"
+read -r input_name
+fi
+
+if [ "$input_name" == "" ];then
+exit
+fi
 
 # 前缀
 class_prefix=`sh ../readProperties.sh classPrefix`
+class_prefix_lowercased=$(echo $class_prefix | tr '[A-Z]' '[a-z]')
 # 项目名称
 project_name=`sh ../readProperties.sh projectName`
 baseView=`sh ../readProperties.sh baseView`
@@ -20,7 +29,6 @@ baseTextView=`sh ../readProperties.sh baseTextView`
 baseCollectionViewCell=`sh ../readProperties.sh baseCollectionViewCell`
 baseTableViewHeaderFooterView=`sh ../readProperties.sh baseTableViewHeaderFooterView`
 baseCollectionReusableView=`sh ../readProperties.sh baseCollectionReusableView`
-
 echo "请输入view的继承类 请输入以下的编号 0:UIView; 1:UITableViewCell; 2:UICollectionViewCell; 3:UITableViewHeaderFooterView; 4:UICollectionReusableView;"
 class_name=""
 super_class_name=""
@@ -109,23 +117,23 @@ echo $name
 # 获取UIView的初始化 懒加载
 function getViewInit(){
 name=$1
-info="fileprivate lazy var ${name} : ${baseView} = { \n let v = ${baseView}()\n return v \n}()"
+info="private lazy var ${name} : ${baseView} = { \n let v = ${baseView}() \n return v \n}()"
 echo "${info}"
 }
 
 # 获取UILabel的初始化
 function getLabelInit(){
 name=$1
-echo " fileprivate lazy var ${name} : ${baseLabel} = {
-        return ${baseLabel}.initlabel(text: "", font: UIFont.systemFont(ofSize: 16), textColor: UIColor.black)
+echo " private lazy var ${name} : ${baseLabel} = { \n
+        return ${baseLabel}.${class_prefix_lowercased}.initLabel(text: "", font: UIFont.systemFont(ofSize: 16), textColor: UIColor.black) \n
     }()"
 }
 
 # 获取UITableView的初始化
 function getTableInit(){
 name=$1
-echo "  fileprivate lazy var ${name} : ${baseTableView} = {
-        let table = ${baseTableView}.initTable(style: .plain, rowHeight: 44)
+echo "  private lazy var ${name} : ${baseTableView} = {
+        let table = ${baseTableView}.${class_prefix_lowercased}.initTable(style: .plain, rowHeight: 44, cellType: <#T##UITableViewCell.Type?#>)
         return table
     }"
 }
@@ -133,9 +141,9 @@ echo "  fileprivate lazy var ${name} : ${baseTableView} = {
 # 获取UICollectionView的初始化
 function getCollectionViewInit(){
 name=$1
-echo "fileprivate lazy var ${name} : ${baseCollectionView} {
+echo "private lazy var ${name} : ${baseCollectionView} {
         let layout = UICollectionViewFlowLayout()
-        let collectionView = ${baseCollectionView}(frame: .zero, collectionViewLayout: layout)
+        let collectionView = ${baseCollectionView}.${class_prefix_lowercased}.initCollection(layout: layout, cellType: <#T##UICollectionViewCell.Type?#>)
         return collectionView
     }()"
 }
@@ -143,7 +151,7 @@ echo "fileprivate lazy var ${name} : ${baseCollectionView} {
 # 获取UIScrollView的初始化
 function getScrollViewInit(){
 name=$1
-echo "fileprivate lazy var ${name} : ${baseScrollView} = {
+echo "private lazy var ${name} : ${baseScrollView} = {
         let scrollView = ${baseScrollView}()
         return scrollView
     }()"
@@ -152,7 +160,7 @@ echo "fileprivate lazy var ${name} : ${baseScrollView} = {
 # 获取UITextField的初始化
 function getTextFieldInit(){
 name=$1
-echo " fileprivate lazy var ${name} : ${baseTextField} = {
+echo " private lazy var ${name} : ${baseTextField} = {
         let textField = ${baseTextField}()
         textField.font = UIFont.systemFont(ofSize: 16)
         textField.textColor = UIColor.black
@@ -164,7 +172,7 @@ echo " fileprivate lazy var ${name} : ${baseTextField} = {
 # 获取UIButton的初始化
 function getButtonInit(){
 name=$1
-echo " fileprivate lazy var ${name} : ${baseButton} = {
+echo " private lazy var ${name} : ${baseButton} = {
         return ${baseButton}.initBtn(title: "", titleColor: .black, img: nil, textFont: UIFont.systemFont(ofSize: 16))
     }()"
 }
@@ -172,7 +180,7 @@ echo " fileprivate lazy var ${name} : ${baseButton} = {
 # 获取UIStackView的初始化
 function getStackView(){
 name=$1
-echo " fileprivate lazy var ${name} : UIStackView = {
+echo " private lazy var ${name} : UIStackView = {
         let s = UIStackView()
         s.spacing = 0
         s.axis = .vertical
@@ -183,7 +191,7 @@ echo " fileprivate lazy var ${name} : UIStackView = {
 # 获取UIImageView的初始化
 function getImageViewInit(){
 name=$1
-echo "fileprivate lazy var ${name} : ${baseImageView} = {
+echo "private lazy var ${name} : ${baseImageView} = {
         return ${baseImageView}()
     }()"
 }
@@ -192,7 +200,7 @@ echo "fileprivate lazy var ${name} : ${baseImageView} = {
 function getTextViewInit(){
 name=$1
 
-echo " fileprivate lazy var ${name} : ${baseTextView} = {
+echo " private lazy var ${name} : ${baseTextView} = {
         let textV = ${baseTextView}()
         textV.font = UIFont.systemFont(ofSize: 14)
         textV.textColor = .black
@@ -203,7 +211,7 @@ echo " fileprivate lazy var ${name} : ${baseTextView} = {
 # 获取UISwitch的初始化
 function getSwitchInit(){
 name=$1
-echo " fileprivate lazy var ${name} : UISwitch = {
+echo " private lazy var ${name} : UISwitch = {
         let s = UISwitch()
         s.onTintColor = .green
         return s
@@ -213,7 +221,7 @@ echo " fileprivate lazy var ${name} : UISwitch = {
 # 获取UISlider的初始化
 function getSliderInit(){
 name=$1
-echo "fileprivate lazy var ${name} : UISlider = {
+echo "private lazy var ${name} : UISlider = {
         let s = UISlider()
         s.maximumValue = 100
         s.maximumTrackTintColor = <#des#>
@@ -224,7 +232,7 @@ echo "fileprivate lazy var ${name} : UISlider = {
 # 获取UIProgressView的初始化
 function getProgressViewInit(){
 name=$1
-echo " fileprivate lazy var ${name} : UIProgressView = {
+echo " private lazy var ${name} : UIProgressView = {
         let progress = UIProgressView()
        return progress
     }()"
@@ -334,11 +342,15 @@ echo "请输入创建属性的名称 不用带后缀 会根据类型创建对应
 read -r att
 variable_name=`getVariableName ${att} ${a}`
 echo "variable_name is ${variable_name}"
-variable_init=$variable_init`getVariableInit ${variable_name} ${a}`
+variable_init=$variable_init`getVariableInit ${variable_name} ${a}`"\n\n"
 echo "variable_init is $variable_init"
 
-add_ui_to_view=$add_ui_to_view"${super_view}.addSubview(${variable_name})""\n"
-add_constraint=$add_Constraint" ${variable_name}.snp.makeConstraints { (maker) in \n \n    }""\n"
+if [ -n "$add_ui_to_view" ];then
+add_ui_to_view=$add_ui_to_view","
+fi
+add_ui_to_view=$add_ui_to_view${variable_name}
+#add_ui_to_view=$add_ui_to_view"${super_view}.addSubview(${variable_name})""\n"
+add_constraint=$add_constraint" ${variable_name}.snp.makeConstraints { (make) in \n \n    }""\n"
 done
 
 
@@ -352,7 +364,8 @@ class ${class_name} : ${super_class_name}{
     
     func setupUI(){
         super.setupUI()
-        ${add_ui_to_view}
+       
+        ${super_view}.${class_prefix_lowercased}.addSubviews(views: [${add_ui_to_view}])
     }
     func addConstraintToView(){
         super.addConstraintToView()
@@ -360,7 +373,7 @@ class ${class_name} : ${super_class_name}{
     }
     
 }
-extension ${class_name} : ${class_prefix}RefreshUI{
+extension ${class_name} : ${class_prefix}RefreshUIProtocol{
         /// 刷新UI数据
     /// - Parameter data: 数据
     func refreshUI(data : Any){

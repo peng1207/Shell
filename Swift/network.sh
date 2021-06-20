@@ -1,11 +1,17 @@
 #!/bin/bash
 # 前缀
 class_prefix=`sh ../readProperties.sh classPrefix`
+# 文件后缀
+class_suffix=".swift"
 # 项目名称
 project_name=`sh ../readProperties.sh projectName`
 class_name=$class_prefix"RequestManager"
-auth_info=`sh authorInfo.sh ${project_name} ${class_name}.swift`
+request_model_name=$class_prefix"RequestModel"
+auth_info=`sh authorInfo.sh ${project_name} ${class_name}${class_suffix}`
 
+base_folder_name="NetWork"
+rm -rf $base_folder_name
+mkdir $base_folder_name
 
 echo "${auth_info}
 import Foundation
@@ -27,7 +33,7 @@ enum ${class_prefix}ResponseFormat {
 typealias ${class_prefix}RequestBlock = (_ data : Any? ,_ error: Error?) -> Void
 
 class ${class_name} {
-    static  fileprivate var requestCacheArr = [DataRequest]()
+    static fileprivate var requestCacheArr = [DataRequest]()
     
     class func request(_ requestModel : ${class_prefix}RequestModel,requestBlock : ${class_prefix}RequestBlock?) {
         guard let url = requestModel.url else {
@@ -98,7 +104,16 @@ class ${class_name} {
     }
     
 }
-class ${class_prefix}RequestModel {
+
+
+" >> $base_folder_name"/"$class_name$class_suffix
+
+
+auth_info=`sh authorInfo.sh ${project_name} ${request_model_name}${class_suffix}`
+echo "${auth_info}
+import Foundation
+
+struct ${class_prefix}RequestModel {
     /// 请求链接
     var url : String?
     /// 请求参数
@@ -117,5 +132,4 @@ class ${class_prefix}RequestModel {
     /// 文件类型
     var mineType : String?
 }
-
-" >> $class_name".swift"
+" >> $base_folder_name"/"$request_model_name$class_suffix
