@@ -45,7 +45,7 @@ read -r is_add_to_view
 
 if [ "${is_add_to_view}" == "y" ];then
 sh ./view.sh $class_name
-mv $view_name $base_folder_name"/"$view_floder_name"/"
+mv ${view_name}${class_suffix} $base_folder_name"/"$view_floder_name"/"$view_name$class_suffix
 else
 auth_info=`sh authorInfo.sh ${project_name} ${view_name}${class_suffix}`
 
@@ -84,7 +84,8 @@ read -r is_add_to_model
 
 if [ "${is_add_to_model}" == "y" ];then
 sh ./model.sh $class_name
-mv $model_name $base_folder_name"/"$model_folder_name"/"
+mv $model_name$class_suffix $base_folder_name"/"$model_folder_name"/"$model_name$class_suffix
+
 else
 auth_info=`sh authorInfo.sh ${project_name} ${model_name}${class_suffix}`
 
