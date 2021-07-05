@@ -9,7 +9,9 @@ server_floder_name="Server"
 class_prefix=`sh ../readProperties.sh classPrefix`
 # 文件后缀
 class_suffix=".swift"
-#toupper 转大写
+# 项目名称
+project_name=`sh ../readProperties.sh projectName`
+#toupper 首字母转小写
 class_name_first_lowercase=`echo ${class_name:0:1} | awk '{print tolower($0)}'`
 class_name_first_lowercase=$class_name_first_lowercase${class_name:1}
 echo "class_name_first_lowercase ${class_name_first_lowercase}"
@@ -20,7 +22,7 @@ view_name=$class_prefix$class_name"View"
 vc_name=$class_prefix$class_name"VC"
 vm_name=$class_prefix$class_name"VM"
 server_name=$class_prefix$class_name"Server"
-
+coordinator_name=$class_prefix$class_name"Coordinator"
 base_folder_name=$class_name
 
 rm -rf $base_folder_name
@@ -55,11 +57,11 @@ import UIKit
 class ${view_name} : ${baseView}{
   
     
-    func setupUI(){
+    override func setupUI(){
         super.setupUI()
     
     }
-    func addConstraintToView(){
+    override func addConstraintToView(){
         super.addConstraintToView()
        
     }
@@ -68,7 +70,7 @@ class ${view_name} : ${baseView}{
 extension ${view_name} : ${class_prefix}RefreshUIProtocol{
         /// 刷新UI数据
     /// - Parameter data: 数据
-    func refreshUI(data : Any){
+    func refreshUI(data : Any?){
     
     }
 }
@@ -107,13 +109,17 @@ auth_info=`sh authorInfo.sh ${project_name} ${vc_name}${class_suffix}`
 echo "${auth_info}
 import UIKit
 
-class ${vc_name} : SPBaseVC{
+class ${vc_name} : ${baseVC}{
     
     private lazy var ${class_name_first_lowercase}View : ${view_name} = {
         return ${view_name}()
     }()
     private lazy var ${class_name_first_lowercase}VM : ${vm_name} = {
         return ${vm_name}()
+    }()
+    private lazy var ${class_name_first_lowercase}Coordinator : ${coordinator_name} = {
+        let coordinator = ${coordinator_name}(vc: self, vm: ${class_name_first_lowercase}VM)
+        return coordinator
     }()
     
     override func viewDidLoad() {
@@ -136,6 +142,13 @@ class ${vc_name} : SPBaseVC{
     }
 }
 
+extension ${vc_name} : ${class_prefix}RouteAble{
+    static func initVC(parm: [String : Any]?) -> Self {
+        let vc = Self()
+        return vc
+    }
+}
+
 " >> $base_folder_name"/"$vc_folder_name"/"$vc_name$class_suffix
 }
 
@@ -145,6 +158,7 @@ auth_info=`sh authorInfo.sh ${project_name} ${vm_name}${class_suffix}`
 echo "${auth_info}
 import Foundation
 
+/// 处理页面业务逻辑、网络请求、UI界面显示逻辑，
 class ${vm_name} {
     
 }
@@ -164,12 +178,32 @@ class ${server_name} {
 " >> $base_folder_name"/"$server_floder_name"/"$server_name$class_suffix
 }
 
+function setupCoordinator(){
+auth_info=`sh authorInfo.sh ${project_name} ${coordinator_name}${class_suffix}`
+
+echo "${auth_info}
+
+import UIKit
+/// vc 事件协调员 主要承担控制器跳转、弹框提示
+class ${coordinator_name}{
+   weak private var vc : UIViewController?
+   weak private var vm : ${vm_name}?
+    init(vc : UIViewController,vm : ${vm_name}) {
+        self.vc = vc
+        self.vm = vm
+    }
+}
+
+" >> $base_folder_name"/"$vm_folder_name"/"$coordinator_name$class_suffix
+}
+
 function init(){
 
 setupView
 setupModel
 setupVC
 setupVM
+setupCoordinator
 setupServer
 
 }

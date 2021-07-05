@@ -226,6 +226,14 @@ class ${baseButton} : UIButton {
     required init?(coder: NSCoder) {
         fatalError(\"init(coder:) has not been implemented\")
     }
+    /// 初始化view 或添加view
+    func setupUI(){
+        self.backgroundColor = .white
+    }
+    /// 对子view添加约束
+    func addConstraintToView(){
+        
+    }
 }
 
 " >> $base_folder_name"/"$baseButton$class_suffix
@@ -426,9 +434,7 @@ class ${baseVC} : UIViewController,UINavigationControllerDelegate,UIGestureRecog
         super.viewWillAppear(animated)
         setupPopGesture()
     }
-    required init?(coder: NSCoder) {
-        fatalError(\"init(coder:) has not been implemented\")
-    }
+
     /// 初始化view 或添加view
     public func setupUI(){
         self.edgesForExtendedLayout = []

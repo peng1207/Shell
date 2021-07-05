@@ -32,6 +32,10 @@ dateFormatter_name=$class_prefix"DateFormatter"
 string_name=$class_prefix"String"
 array_name=$class_prefix"Array"
 model_protocol="${class_prefix}ModelProtocol"
+window_name=$class_prefix"Window"
+screen_name=$class_prefix"Screen"
+device_name=$class_prefix"Device"
+notification_name$class_prefix"Notification"
 
 function setupTarget(){
 auth_info=`sh authorInfo.sh ${project_name} ${target_class_name}${class_suffix}`
@@ -55,8 +59,8 @@ import Foundation
 
 public protocol ${target_protocol} {
     associatedtype Base
-    var sp : ${target_class_name}<Base>{get}
-    static var sp : ${target_class_name}<Base>.Type {get}
+    var ${class_prefix_lowercased} : ${target_class_name}<Self.Base>{get}
+    static var ${class_prefix_lowercased} : ${target_class_name}<Self.Base>.Type {get}
 }
 extension ${target_protocol} {
     
@@ -76,7 +80,7 @@ auth_info=`sh authorInfo.sh ${project_name} ${objec_name}${class_suffix}`
 
 echo "${auth_info}
 import Foundation
-extension NSObject : SPTargetProtocol{
+extension NSObject : ${target_protocol}{
     
 }
 extension ${target_class_name} where Base : NSObject {
@@ -111,8 +115,8 @@ extension ${target_class_name} where Base : UIView {
     ///   - borderColor: 边框颜色
     ///   - borderWidth: 边框宽度
     public func corner(radis : CGFloat,byRoundingCorners corners: UIRectCorner = .allCorners,borderColor : UIColor?,borderWidth : CGFloat){
-        let cornerLayer : SPCornerLayer = getCustomLayer() ?? {
-            let layer = SPCornerLayer()
+        let cornerLayer : ${class_prefix}CornerLayer = getCustomLayer() ?? {
+            let layer = ${class_prefix}CornerLayer()
             self.base.layer.masksToBounds = true
             self.base.layer.mask = layer
             return layer
@@ -132,8 +136,8 @@ extension ${target_class_name} where Base : UIView {
     ///   - radis: 边框是否圆角
     ///   - corners: 圆角方向
     public func border(color : UIColor?,width : CGFloat,radis:CGFloat,corners: UIRectCorner = .allCorners){
-        let borderLayer : SPBorderLayer = getCustomLayer() ?? {
-            let layer = SPBorderLayer()
+        let borderLayer : ${class_prefix}BorderLayer = getCustomLayer() ?? {
+            let layer = ${class_prefix}BorderLayer()
             self.base.layer.addSublayer(layer)
             return layer
         } ()
@@ -160,7 +164,7 @@ extension ${target_class_name} where Base : UIView {
         return cornerLayer
     }
     
-    private class SPCornerLayer : CAShapeLayer {
+    private class ${class_prefix}CornerLayer : CAShapeLayer {
         var radis : CGFloat = 0
         var corners : UIRectCorner = .allCorners
         func drawCorner(){
@@ -168,7 +172,7 @@ extension ${target_class_name} where Base : UIView {
             self.path = path.cgPath
         }
     }
-    private class SPBorderLayer : CAShapeLayer{
+    private class ${class_prefix}BorderLayer : CAShapeLayer{
         var radis : CGFloat = 0
         var corners : UIRectCorner = .allCorners
         func drawCorner(){
@@ -181,6 +185,59 @@ extension ${target_class_name} where Base : UIView {
         }
     }
 }
+
+/// frame
+extension ${target_class_name} where Base : UIView {
+    
+    public var x : CGFloat {
+        get { self.base.frame.origin.x }
+        set{
+            var frame = self.base.frame
+            frame.origin.x = newValue
+            self.base.frame = frame
+        }
+    }
+    public var y : CGFloat {
+        get { self.base.frame.origin.y }
+        set {
+            var frame = self.base.frame
+            frame.origin.y = newValue
+            self.base.frame = frame
+        }
+    }
+    public var width : CGFloat {
+        get { self.base.frame.size.width }
+        set {
+            var frame = self.base.frame
+            frame.size.width = newValue
+            self.base.frame = frame
+        }
+    }
+    public var height : CGFloat {
+        get { self.base.frame.size.height }
+        set {
+            var frame = self.base.frame
+            frame.size.height = newValue
+            self.base.frame = frame
+        }
+    }
+    public var maxX : CGFloat {
+        return x + width
+    }
+    public var maxY : CGFloat {
+        return y + height
+    }
+    public var centerX : CGFloat {
+        return x + width / 2.0
+    }
+    public var centerY : CGFloat {
+        return y + height / 2.0
+    }
+    public var bounds : CGRect {
+        return self.base.bounds
+    }
+}
+
 " >> $ex_folder_name"/"$view_name$class_suffix
 
 }
@@ -208,24 +265,43 @@ extension ${target_class_name} where Base : UILabel {
 
 function setupImageView(){
 auth_info=`sh authorInfo.sh ${project_name} ${imageView_name}${class_suffix}`
+img_complete_name="${class_prefix}ImgLoadComplete"
+img_download_name="${class_prefix}ImgDownload"
 
 echo "${auth_info}
 import Foundation
 import UIKit
+import Kingfisher
+
+/// 图片加载成功回调
+public typealias ${img_complete_name} = (_ img : UIImage?)->Void
+/// 图片加载进度
+public typealias ${img_download_name} = (_ progress : CGFloat)->Void
 
 extension ${target_class_name} where Base : UIImageView {
     
-    public func load(urlStr : String,placeholderImg : UIImage? = nil){
+    public func load(urlStr : String,placeholderImg : UIImage? = nil , download : ${img_download_name}? = nil , complete : ${img_complete_name}? = nil){
         guard let url = URL(string: urlStr) else {
             self.base.image = placeholderImg
             return
         }
-        load(url: url, placeholderImg: placeholderImg)
+        load(url: url, placeholderImg: placeholderImg , download: download , complete: complete)
     }
-    public func load(url : URL?,placeholderImg : UIImage? = nil){
+    public func load(url : URL?,placeholderImg : UIImage? = nil , download : ${img_download_name}? = nil  , complete : ${img_complete_name}? = nil){
         guard let url = url else {
             self.base.image = placeholderImg
             return
+        }
+        self.base.kf.setImage(with: url, placeholder: placeholderImg, options: nil) { current, total in
+            let progress = CGFloat(current) / CGFloat(total)
+            download?(progress)
+        } completionHandler: { result in
+            switch result {
+            case .success(let imgResult):
+                complete?(imgResult.image)
+            default:
+                complete?(nil)
+            }
         }
     }
 }
@@ -396,7 +472,7 @@ extension ${target_class_name} where Base : UICollectionView{
         let collectionView = Base(frame: .zero, collectionViewLayout: flowLayout)
         collectionView.backgroundColor = .white
         if let type = cellType {
-            collectionView.register(type, forCellWithReuseIdentifier: type.@{class_prefix_lowercased}.identifier())
+            collectionView.register(type, forCellWithReuseIdentifier: type.${class_prefix_lowercased}.identifier())
         }
         return collectionView
     }
@@ -418,7 +494,10 @@ extension ${target_class_name} where Base : UINavigationController {
         let navBar = UINavigationBar.appearance()
         navBar.setBackgroundImage(UIImage.${class_prefix_lowercased}.image(color: UIColor.white), for: .default)
         navBar.shadowImage = UIImage()
-        navBar.titleTextAttributes = [NSAttributedString.Key.font : UIFont.sp.font(size: 20),NSAttributedString.Key.foregroundColor : UIColor.black]
+        navBar.titleTextAttributes = [NSAttributedString.Key.font : UIFont.${class_prefix_lowercased}.font(size: 20),NSAttributedString.Key.foregroundColor : UIColor.black]
+    }
+    public static var navHeight : CGFloat {
+        44.0
     }
 }
 " >> $ex_folder_name"/"$navVC_name$class_suffix
@@ -577,7 +656,53 @@ echo "${auth_info}
 import UIKit
 
 extension ${target_class_name} where Base : DateFormatter {
+    private static var dateFormater : Base {
+        let formater = Base()
+        return formater
+    }
     
+    public static func dateFormater(formater : String) ->  Base {
+        let dateFormater = dateFormater
+        dateFormater.dateFormat = formater
+        return dateFormater
+    }
+    /// 格式为 yyyy-MM-dd HH:mm:ss
+    public static func ymdhms() -> Base {
+        return dateFormater(formater: \"yyyy-MM-dd HH:mm:ss\")
+    }
+    /// 格式为 yyyy-MM-dd
+    public static func ymd() -> Base {
+        dateFormater(formater: \"yyyy-MM-dd\")
+    }
+    /// 格式为 HH:mm:ss
+    public static func hms() -> Base {
+        dateFormater(formater: \"HH:mm:ss\")
+    }
+    /// 格式为 yyyy
+    public static func year() -> Base {
+        dateFormater(formater: \"yyyy\")
+    }
+    /// 格式为 MM
+    public static func month() -> Base {
+        dateFormater(formater: \"MM\")
+    }
+    /// 格式为 dd
+    public static func day() -> Base {
+        dateFormater(formater: \"dd\")
+    }
+    /// 格式为  HH
+    public static func hour() -> Base {
+        dateFormater(formater: \"HH\")
+    }
+    /// 格式为  mm
+    public static func minute() -> Base {
+        dateFormater(formater: \"mm\")
+    }
+    /// 格式为  ss
+    public static func second() -> Base {
+        dateFormater(formater: \"ss\")
+    }
+
 }
 " >> $ex_folder_name"/"$dateFormatter_name$class_suffix
 
@@ -671,7 +796,7 @@ protocol ${model_protocol} : ${target_protocol} {
     
 }
 
-extension SPTarget where Base : ${model_protocol} {
+extension ${target_class_name} where Base : ${model_protocol} {
     internal static func model(with json : [String : Any]?)->Base?{
         return nil
     }
@@ -692,6 +817,137 @@ extension SPTarget where Base : ${model_protocol} {
     }
 }
 " >> $ex_folder_name"/"$model_protocol$class_suffix
+}
+
+function setupWindow(){
+auth_info=`sh authorInfo.sh ${project_name} ${window_name}${class_suffix}`
+
+echo "${auth_info}
+
+import UIKit
+
+extension ${target_class_name} where Base : UIWindow {
+    
+    public static func getWindow() -> UIWindow? {
+        var window : UIWindow?
+        if  #available(iOS 13.0, *) {
+            if let windowScene = UIApplication.shared.connectedScenes.first , let deletage =  windowScene.delegate as? SceneDelegate{
+                window = deletage.window
+            }
+        }
+        if window == nil,let w = UIApplication.shared.delegate?.window {
+            window = w
+        }
+        return window
+    }
+}
+
+" >> $ex_folder_name"/"$window_name$class_suffix
+
+}
+
+function setupScreen(){
+auth_info=`sh authorInfo.sh ${project_name} ${screen_name}${class_suffix}`
+
+echo "${auth_info}
+
+import UIKit
+
+extension ${target_class_name} where Base : UIScreen {
+    static func width() -> CGFloat {
+        return Base.main.bounds.size.width
+    }
+    static func height() ->  CGFloat {
+        return Base.main.bounds.size.height
+    }
+    static func scale() ->  CGFloat {
+        return Base.main.scale
+    }
+}
+
+" >> $ex_folder_name"/"$screen_name$class_suffix
+}
+
+function setupDevice(){
+auth_info=`sh authorInfo.sh ${project_name} ${device_name}${class_suffix}`
+
+echo "${auth_info}
+
+import UIKit
+
+/// 设备类型
+public enum ${class_prefix}DeviceType {
+    case unknow
+    case iphone
+    case ipad
+    case ipod
+}
+
+extension ${target_class_name} where Base : UIDevice {
+    static var version : String {
+        return Base.current.systemVersion
+    }
+    static var systemName : String {
+        Base.current.systemName
+    }
+    static var name :  String {
+        Base.current.name
+    }
+    static var model : String {
+        Base.current.model
+    }
+    static var deviceType : ${class_prefix}DeviceType {
+        let typeString = model
+        var type : ${class_prefix}DeviceType = .unknow
+        switch typeString {
+        case \"iPhone\":
+            type = .iphone
+        case \"iPod touch\":
+            type = .ipod
+        case \"iPad\":
+            type = .ipad
+        default:
+            type = .unknow
+        }
+        return type
+    }
+    static var isIpad :  Bool {
+        if deviceType == .ipad {
+            return true
+        }
+        return false
+    }
+    
+}
+" >> $ex_folder_name"/"$device_name$class_suffix
+}
+
+function setupNotification(){
+auth_info=`sh authorInfo.sh ${project_name} ${notification_name}${class_suffix}`
+complete_name=$class_prefix"NotificationComplete"
+echo "${auth_info}
+
+public typealias ${complete_name} = (_ notification : Notification)->Void
+
+extension CYTarget where Base : NotificationCenter {
+    
+    public static func post(name : String , object : Any? = nil , userInfo : [AnyHashable : Any]? = nil){
+        post(noifcationName: NSNotification.Name(name), object: object, userInfo: userInfo)
+    }
+    public static func post(noifcationName : NSNotification.Name , object : Any? = nil , userInfo : [AnyHashable : Any]? = nil){
+        Base.default.post(name: noifcationName, object: object, userInfo: userInfo)
+    }
+    public static func add(name : String , object : Any? = nil , complete :  ${complete_name}?){
+       add(notificationName: NSNotification.Name(name), object: object, complete: complete)
+    }
+    public static func add(notificationName : NSNotification.Name ,  object : Any? = nil , complete : ${complete_name}?){
+        Base.default.addObserver(forName: notificationName, object: object, queue: nil) { notification in
+            complete?(notification)
+        }
+    }
+}
+
+" >> $ex_folder_name"/"$notification_name$class_suffix
 }
 
 function init(){
@@ -715,6 +971,10 @@ setupDateFormatter
 setupString
 setupArray
 setupModelProtocol
+setupWindow
+setupScreen
+setupDevice
+setupNotification
 
 }
 

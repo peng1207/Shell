@@ -23,9 +23,11 @@ enum ${class_prefix}HttpMethod {
     case post
     case head
     case put
+    case delete
 }
 
 enum ${class_prefix}ResponseFormat {
+    case none
     case json
     case data
     case string
@@ -62,6 +64,8 @@ class ${class_name} {
             httpMethod = .head
         case .put :
             httpMethod = .put
+        case .delete:
+            httpMethod = .delete
         }
         let dataRequest = Alamofire.AF.request(requestUrl, method: httpMethod, parameters: requestModel.parm)
  
@@ -71,21 +75,26 @@ class ${class_name} {
         switch requestModel.reponseFormt {
         case .json:
            
-            dataRequest.responseJSON { (dataResponse : DataResponse) in
-                sp_requestSuccess(dataResponse: dataResponse, requestModel: requestModel, requestBlock: requestBlock)
+            dataRequest.responseJSON { dataResponse in
+                requestSuccess(dataResponse: dataResponse, requestModel: requestModel, requestBlock: requestBlock)
             }
         case .data:
-            dataRequest.responseData { (dataResponse:DataResponse) in
-
+            dataRequest.responseData { dataResponse in
+                requestSuccess(dataResponse: dataResponse, requestModel: requestModel, requestBlock: requestBlock)
             }
         case .string:
-            dataRequest.responseString { (dataResponse : DataResponse) in
-
+            dataRequest.responseString { dataResponse in
+                requestSuccess(dataResponse: dataResponse, requestModel: requestModel, requestBlock: requestBlock)
+            }
+        default:
+            dataRequest.response { dataReponse  in
+                requestSuccess(dataResponse: dataReponse, requestModel: requestModel, requestBlock: requestBlock)
             }
         }
+        self.requestCacheArr.append(dataRequest)
     }
     
-    private class func requestSuccess(dataResponse : AFDataResponse<Any>,requestModel : SPRequestModel ,requestBlock : SPRequestBlock?){
+        requestSuccess<T>(dataResponse : AFDataResponse<T> , requestModel : ${request_model_name} ,requestBlock : ${class_prefix}RequestBlock?){
         requestModel.isRequest = false
         guard let block = requestBlock else {
             return
@@ -113,7 +122,7 @@ auth_info=`sh authorInfo.sh ${project_name} ${request_model_name}${class_suffix}
 echo "${auth_info}
 import Foundation
 
-struct ${class_prefix}RequestModel {
+class ${class_prefix}RequestModel {
     /// 请求链接
     var url : String?
     /// 请求参数

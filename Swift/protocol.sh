@@ -15,4 +15,14 @@ echo "${auth_info}
 public protocol ${refreshUI_protocol} {
      func refreshUI(data : Any?)
 }
+
+public protocol ${class_prefix}RouteAble{
+    static func initVC(parm : [String : Any]?)->Self
+}
+
+public protocol ${class_prefix}RouteParmAble{
+    var any : AnyClass?{get}
+    var parm : [String : Any]?{get}
+}
+
 " >> $class_name$class_suffix
