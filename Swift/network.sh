@@ -94,7 +94,7 @@ class ${class_name} {
         self.requestCacheArr.append(dataRequest)
     }
     
-        requestSuccess<T>(dataResponse : AFDataResponse<T> , requestModel : ${request_model_name} ,requestBlock : ${class_prefix}RequestBlock?){
+    static func  requestSuccess<T>(dataResponse : AFDataResponse<T> , requestModel : ${request_model_name} ,requestBlock : ${class_prefix}RequestBlock?){
         requestModel.isRequest = false
         guard let block = requestBlock else {
             return

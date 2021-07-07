@@ -5,7 +5,7 @@ ex_folder_name="Extension"
 # 前缀
 class_prefix=`sh ../readProperties.sh classPrefix`
 class_suffix=".swift"
-class_prefix_lowercased=$(echo $class_prefix | tr '[A-Z]' '[a-z]')
+class_prefix_lowercased=`sh ../letter.sh ${class_prefix} 1`
 echo "class_prefix_lowercased ${class_prefix_lowercased}"
 # 项目名称
 project_name=`sh ../readProperties.sh projectName`
@@ -35,7 +35,7 @@ model_protocol="${class_prefix}ModelProtocol"
 window_name=$class_prefix"Window"
 screen_name=$class_prefix"Screen"
 device_name=$class_prefix"Device"
-notification_name$class_prefix"Notification"
+notification_name=$class_prefix"Notification"
 
 function setupTarget(){
 auth_info=`sh authorInfo.sh ${project_name} ${target_class_name}${class_suffix}`
@@ -926,6 +926,8 @@ function setupNotification(){
 auth_info=`sh authorInfo.sh ${project_name} ${notification_name}${class_suffix}`
 complete_name=$class_prefix"NotificationComplete"
 echo "${auth_info}
+
+import UIKit
 
 public typealias ${complete_name} = (_ notification : Notification)->Void
 

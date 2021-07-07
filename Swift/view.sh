@@ -13,7 +13,7 @@ fi
 
 # 前缀
 class_prefix=`sh ../readProperties.sh classPrefix`
-class_prefix_lowercased=$(echo $class_prefix | tr '[A-Z]' '[a-z]')
+class_prefix_lowercased=`sh ../letter.sh ${class_prefix} 1`
 # 项目名称
 project_name=`sh ../readProperties.sh projectName`
 baseView=`sh ../readProperties.sh baseView`

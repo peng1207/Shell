@@ -4,7 +4,7 @@ class_prefix=`sh ../readProperties.sh classPrefix`
 project_name=`sh ../readProperties.sh projectName`
 class_name="${class_prefix}Tool"
 class_suffix=".swift"
-class_prefix_lowercased=$(echo $class_prefix | tr '[A-Z]' '[a-z]')
+class_prefix_lowercased=`sh ../letter.sh ${class_prefix} 1`
 
 auth_info=`sh authorInfo.sh ${project_name} ${class_name}${class_suffix}`
 

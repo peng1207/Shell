@@ -2,8 +2,8 @@
 # 前缀
 class_prefix=`sh ../readProperties.sh classPrefix`
 class_suffix=".swift"
-class_prefix_lowercased=$(echo $class_prefix | tr '[A-Z]' '[a-z]')
-echo "class_prefix ${class_prefix}"
+class_prefix_lowercased=`sh ../letter.sh ${class_prefix} 1`
+echo "class_prefix  ${class_prefix} ${class_prefix_lowercased}"
 # 项目名称
 project_name=`sh ../readProperties.sh projectName`
 
@@ -203,6 +203,7 @@ mkdir ${library_path}
 
 tabbar_vc_name=""
 tabbar_list_vc=""
+# 创建tabbar
 function setupTabbar(){
 main_path=$app_path"/Main"
 mkdir ${main_path}
@@ -250,10 +251,10 @@ class ${tabbar_vc_name} : UITabBarController {
             style.alignment = .center
             
             let normalAppearance = appearance.stackedLayoutAppearance.normal
-            normalAppearance.titleTextAttributes = [NSAttributedString.Key.foregroundColor : UIColor.white,NSAttributedString.Key.paragraphStyle : style]
+            normalAppearance.titleTextAttributes = [NSAttributedString.Key.foregroundColor : UIColor.black,NSAttributedString.Key.paragraphStyle : style]
             
             let selectedAppearance = appearance.stackedLayoutAppearance.selected
-            selectedAppearance.titleTextAttributes = [NSAttributedString.Key.foregroundColor : UIColor.white,NSAttributedString.Key.paragraphStyle : style]
+            selectedAppearance.titleTextAttributes = [NSAttributedString.Key.foregroundColor : UIColor.black,NSAttributedString.Key.paragraphStyle : style]
            
             tabBar.standardAppearance = appearance
         } else {
@@ -346,7 +347,7 @@ class ${main_configure_name} {
 }
 
 
-function setupVC(){
+function setupTabbarVC(){
 
 is_tabbar_vc="n"
 echo "是否有tabbarContoller y/n"
@@ -362,7 +363,7 @@ if [ "${is_tabbar_vc}" == "y" ];then
         isBreak=1
         while [ ${isBreak} ]
         do
-            echo "\n ***************************\n请输入模块的名称 若不需要，请按回车"
+            echo "\n ***************************\n请输入主模块的名称 若不需要，请按回车"
             modular_name=""
             read -r modular_name
             if [ "${modular_name}" != "" ];then
@@ -370,8 +371,8 @@ if [ "${is_tabbar_vc}" == "y" ];then
                 
                 mv ${modular_name} $modules_path"/"${modular_name}
                 vc_name=$class_prefix$modular_name"VC"
-                
-                tabbar_list_vc=${tabbar_list_vc}"list.append(getMainModel(title: \"\", normalImg: nil, selectImg: nil, vc: ${vc_name}()))\n"
+                first_letter=`sh ../letter.sh ${modular_name} 0`
+                tabbar_list_vc=${tabbar_list_vc}"        list.append(getMainModel(title: \"${first_letter}\", normalImg: nil, selectImg: nil, vc: ${vc_name}()))\n"
                 
             else
                 isBreak=0
@@ -389,6 +390,29 @@ fi
 
 }
 
+function setupOtherVC(){
+echo "是否创建其它的模块 y/n"
+is_other_vc="n"
+read -r is_other_vc
+if [ "${is_other_vc}" == "y" ];then
+    isBreak=1
+    while [ $isBreak ]
+    do
+        echo "\n ======================\n请输入模块的名称 若不需要，请按回车"
+        modular_name=""
+        read -r modular_name
+        if [ "${modular_name}" != "" ];then
+            sh modular.sh ${modular_name}
+                
+            mv ${modular_name} $modules_path"/"${modular_name}
+                
+            else
+                isBreak=0
+                break
+            fi
+    done
+fi
+}
 
 function setupAPPConfigure(){
 #APPConfigure
@@ -556,10 +580,9 @@ mvFile $class_prefix"Protocol"$class_suffix
 mvFile $class_prefix"Enum"$class_suffix
 mvFile $class_prefix"Tool"$class_suffix
 
-
-
-
 }
+
+
 
 function setupRoute(){
 route_folder_name=$app_path"/Route"
@@ -633,6 +656,14 @@ function initGit(){
 git init ${project_path}
 }
 
+function addFilesToProject(){
+echo "开始调用添加文件到 项目中"
+
+ruby ../addFileToProject.rb $project_path"/"$project_name$xcodeproj_name $project_name"/APP"
+ruby ../addFileToProject.rb $project_path"/"$project_name$xcodeproj_name $project_name"/Library"
+echo "结束调用添加文件到 项目中"
+}
+
 function init(){
 
 replaceProject
@@ -642,7 +673,8 @@ replaceUITests
 setupAppDelegate
 setupSceneDelegate
 setupHomeDirectory
-setupVC
+setupTabbarVC
+setupOtherVC
 setupAPPConfigure
 setupBaseClass
 setupExtension
@@ -656,6 +688,7 @@ setupPhotoCamera
 setupAudio
 setupVideo
 setupRoute
+addFilesToProject
 setupPodfile
 initPodfile
 initGit

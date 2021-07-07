@@ -12,8 +12,7 @@ class_suffix=".swift"
 # 项目名称
 project_name=`sh ../readProperties.sh projectName`
 #toupper 首字母转小写
-class_name_first_lowercase=`echo ${class_name:0:1} | awk '{print tolower($0)}'`
-class_name_first_lowercase=$class_name_first_lowercase${class_name:1}
+class_name_first_lowercase=`sh ../letter.sh ${class_name} 0`
 echo "class_name_first_lowercase ${class_name_first_lowercase}"
 baseVC=`sh ../readProperties.sh baseVC`
 baseView=`sh ../readProperties.sh baseView`
@@ -56,7 +55,6 @@ import UIKit
 
 class ${view_name} : ${baseView}{
   
-    
     override func setupUI(){
         super.setupUI()
     
@@ -67,8 +65,9 @@ class ${view_name} : ${baseView}{
     }
     
 }
+
 extension ${view_name} : ${class_prefix}RefreshUIProtocol{
-        /// 刷新UI数据
+    /// 刷新UI数据
     /// - Parameter data: 数据
     func refreshUI(data : Any?){
     
@@ -186,8 +185,8 @@ echo "${auth_info}
 import UIKit
 /// vc 事件协调员 主要承担控制器跳转、弹框提示
 class ${coordinator_name}{
-   weak private var vc : UIViewController?
-   weak private var vm : ${vm_name}?
+    weak private var vc : UIViewController?
+    weak private var vm : ${vm_name}?
     init(vc : UIViewController,vm : ${vm_name}) {
         self.vc = vc
         self.vm = vm
